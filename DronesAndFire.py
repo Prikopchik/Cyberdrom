@@ -55,11 +55,11 @@ def check_drone_collisions(drones):
                 distance = calculate_distance(drones[i], drones[j])
                 if distance < COLLISION_DISTANCE:
                     print(f"Collision detected between drones {i} and {j}! Evading...")
-                    evade_collision(drones[i], drones[j])
+                    evade_collision_drones(drones[i], drones[j])
         time.sleep(1)
 
 # Функция для уклонения от столкновения БПЛА
-def evade_collision(drone1, drone2):
+def evade_collision_drones(drone1, drone2):
     new_x1 = drone1.x + 1.0  # Сдвигаем один БПЛА вправо
     new_x2 = drone2.x - 1.0  # Сдвигаем другой БПЛА влево
     drone1.go_to_local_point(x=new_x1, y=drone1.y, z=drone1.z)
@@ -74,11 +74,11 @@ def check_robot_collisions(robots):
                 distance = calculate_distance(robots[i], robots[j])
                 if distance < COLLISION_DISTANCE:
                     print(f"Collision detected between robots {i} and {j}! Evading...")
-                    evade_collision(robots[i], robots[j])
+                    evade_collision_robots(robots[i], robots[j])
         time.sleep(1)
 
 # Функция для уклонения от столкновения
-def evade_collision(robot1, robot2):
+def evade_collision_robots(robot1, robot2):
     robot1.move_to(x=robot1.x + 0.5, y=robot1.y + 0.5, z=robot1.z)
     robot2.move_to(x=robot2.x - 0.5, y=robot2.y - 0.5, z=robot2.z)
 
@@ -107,7 +107,7 @@ robots = [ObjectData(0, 0, 0), ObjectData(0, 0, 0)]
 
 # Запуск потоков для выполнения мероприятий РТС
 for robot in robots:
-    fire_extinguishing_thread = threading.Thread(target=perform_fire_extinguishing, args=(robot,))
+    fire_extinguishing_thread = threading.Thread(target=perform_fire_extinguishing, args=(robot,), daemon=True)
     fire_extinguishing_thread.start()
 
 # Создание дронов
@@ -118,17 +118,19 @@ drones = [
 
 # Запуск потоков для выполнения миссии поиска пожаров
 for i, drone in enumerate(drones):
-    search_thread = threading.Thread(target=search_mission, args=(drone, waypoints))
-    detect_fire_thread = threading.Thread(target=detect_fire, args=(drone,))
+    search_thread = threading.Thread(target=search_mission, args=(drone,), daemon=True)
+    detect_fire_thread = threading.Thread(target=detect_fire, args=(drone,), daemon=True)
     search_thread.start()
     detect_fire_thread.start()
 
 # Запуск потоков для проверки столкновений
-drone_collision_thread = threading.Thread(target=check_drone_collisions, args=(drones,))
-robot_collision_thread = threading.Thread(target=check_robot_collisions, args=(robots,))
+drone_collision_thread = threading.Thread(target=check_drone_collisions, args=(drones), daemon=True)
+robot_collision_thread = threading.Thread(target=check_robot_collisions, args=(robots), daemon=True)
 drone_collision_thread.start()
 robot_collision_thread.start()
 
-# Основной цикл программы (можно реализовать дополнительную логику)
+# Основной цикл программы 
 while True:
-    time.sleep(1)
+    for thread in threading.enumerate():
+        print("Thread:", thread.name, "is alive:", thread.is_alive())
+    time.sleep(1)  

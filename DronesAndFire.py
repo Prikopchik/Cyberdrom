@@ -129,6 +129,69 @@ robot_collision_thread = threading.Thread(target=check_robot_collisions, args=(r
 drone_collision_thread.start()
 robot_collision_thread.start()
 
+class Obstacle:
+    def __init__(self, x, y,length,width, height,is_rts,num):
+        self.x = x
+        self.y = y
+        self.length = length
+        self.width = width
+        self.height = height
+        self.is_rts = is_rts
+        self.num = num
+
+class Platforms:
+    def __init__(self,x,y,length,width):
+        self.x = x
+        self.y = y
+        self.length = length
+        self.width = width
+
+# Примерные координаты строений и стартовых площадок
+buildings = [Obstacle(0.6, -0.1, 0.4, 0.4, 0.4), Obstacle(-1.87, -0.52, 0.4, 0.4, 0.4), Obstacle(-3, 1.6, 0.4, 0.4, 0.4), Obstacle(3, 1, 0.4, 0.4, 0.4)]
+starting_platforms = [Platforms(-1.75, -3.6, 0.8, 0.8,False,1), Platforms(-2.9, -3.6, 0.8, 0.8,False,0), Platforms(-1.85,3.4,0.8,0.8,True,0), Platforms(1.85,3.4,0.8,0.8,True,1)]
+
+def is_on_platform(object_x, object_y, platform):
+    # Проверка, находится ли объект на площадке
+    platform_x = platform.x
+    platform_y = platform.y
+    platform_width = platform.width
+    platform_height = platform.height
+    if (platform_x - platform_width / 2 <= object_x <= platform_x + platform_width / 2) and \
+       (platform_y - platform_height / 2 <= object_y <= platform_y + platform_height / 2):
+        return True
+    else:
+        return False
+
+def is_colliding_with_obstacle(object_x, object_y, obstacles):
+    # Проверка, сталкивается ли объект с препятствиями
+    for obstacle in obstacles:
+        obstacle_x = obstacle.x
+        obstacle_y = obstacle.y
+
+        obstacle_width = obstacle.width
+        obstacle_height = obstacle.height
+        if (obstacle_x - obstacle_width / 2 <= object_x <= obstacle_x + obstacle_width / 2) and \
+           (obstacle_y - obstacle_height / 2 <= object_y <= obstacle_y + obstacle_height / 2):
+            return True
+    return False
+
+# # Пример 
+# object_x = 1.8
+# object_y = -3.5
+# for platform in starting_platforms:
+#     if is_on_platform(object_x, object_y, platform):
+#         print("Object is on the starting platform")
+#         break
+# else:
+#     print("Object is not on the starting platform")
+
+# for building in buildings:
+#     if is_colliding_with_obstacle(object_x, object_y, [building]):
+#         print("Object is colliding with a building")
+#         break
+# else:
+#     print("Object is not colliding with any building")
+
 # Основной цикл программы 
 while True:
     for thread in threading.enumerate():
